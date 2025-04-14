@@ -996,7 +996,7 @@ mod tests {
             .add_quota_failure_violation("clientip:<ip address>", "description")
             .set_error_info("SOME_INFO", "example.local", metadata.clone())
             .add_precondition_failure_violation("TOS", "example.local", "description")
-            .add_bad_request_violation("field", "description")
+            .add_bad_request_violation("field", "reason", "description", None)
             .set_request_info("request-id", "some-request-data")
             .set_resource_info("resource-type", "resource-name", "owner", "description")
             .add_help_link("link to resource", "resource.example.local")
@@ -1014,7 +1014,7 @@ mod tests {
             QuotaFailure::with_violation("clientip:<ip address>", "description").into(),
             ErrorInfo::new("SOME_INFO", "example.local", metadata).into(),
             PreconditionFailure::with_violation("TOS", "example.local", "description").into(),
-            BadRequest::with_violation("field", "description").into(),
+            BadRequest::with_violation("field", "reason", "description", None).into(),
             RequestInfo::new("request-id", "some-request-data").into(),
             ResourceInfo::new("resource-type", "resource-name", "owner", "description").into(),
             Help::with_link("link to resource", "resource.example.local").into(),

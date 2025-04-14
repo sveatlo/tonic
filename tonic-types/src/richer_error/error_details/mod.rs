@@ -258,10 +258,17 @@ impl ErrorDetails {
     /// ```
     pub fn with_bad_request_violation(
         field: impl Into<String>,
+        reason: impl Into<String>,
         description: impl Into<String>,
+        localized_message: Option<LocalizedMessage>,
     ) -> Self {
         ErrorDetails {
-            bad_request: Some(BadRequest::with_violation(field, description)),
+            bad_request: Some(BadRequest::with_violation(
+                field,
+                reason,
+                description,
+                localized_message,
+            )),
             ..ErrorDetails::new()
         }
     }
@@ -702,14 +709,21 @@ impl ErrorDetails {
     pub fn add_bad_request_violation(
         &mut self,
         field: impl Into<String>,
+        reason: impl Into<String>,
         description: impl Into<String>,
+        localized_message: Option<LocalizedMessage>,
     ) -> &mut Self {
         match &mut self.bad_request {
             Some(bad_request) => {
-                bad_request.add_violation(field, description);
+                bad_request.add_violation(field, reason, description, localized_message);
             }
             None => {
-                self.bad_request = Some(BadRequest::with_violation(field, description));
+                self.bad_request = Some(BadRequest::with_violation(
+                    field,
+                    reason,
+                    description,
+                    localized_message,
+                ));
             }
         };
         self

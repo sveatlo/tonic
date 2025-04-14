@@ -3,7 +3,10 @@ use prost_types::Any;
 
 use crate::richer_error::FromAnyRef;
 
-use super::super::{pb, FromAny, IntoAny};
+use super::{
+    super::{pb, FromAny, IntoAny},
+    LocalizedMessage,
+};
 
 /// Used at the `field_violations` field of the [`BadRequest`] struct.
 /// Describes a single bad request field.
@@ -16,14 +19,27 @@ pub struct FieldViolation {
 
     /// Description of why the field is bad.
     pub description: String,
+
+    /// Constant reason for the field violation.
+    pub reason: String,
+
+    /// Localized error message
+    pub localized_message: Option<LocalizedMessage>,
 }
 
 impl FieldViolation {
     /// Creates a new [`FieldViolation`] struct.
-    pub fn new(field: impl Into<String>, description: impl Into<String>) -> Self {
+    pub fn new(
+        field: impl Into<String>,
+        reason: impl Into<String>,
+        description: impl Into<String>,
+        localized_message: Option<LocalizedMessage>,
+    ) -> Self {
         FieldViolation {
             field: field.into(),
             description: description.into(),
+            reason: reason.into(),
+            localized_message,
         }
     }
 }
@@ -33,6 +49,8 @@ impl From<pb::bad_request::FieldViolation> for FieldViolation {
         FieldViolation {
             field: value.field,
             description: value.description,
+            reason: value.reason,
+            localized_message: value.localized_message.map(Into::into),
         }
     }
 }
@@ -42,6 +60,8 @@ impl From<FieldViolation> for pb::bad_request::FieldViolation {
         pb::bad_request::FieldViolation {
             field: value.field,
             description: value.description,
+            reason: value.reason,
+            localized_message: value.localized_message.map(Into::into),
         }
     }
 }
@@ -70,11 +90,18 @@ impl BadRequest {
 
     /// Creates a new [`BadRequest`] struct with a single [`FieldViolation`] in
     /// `field_violations`.
-    pub fn with_violation(field: impl Into<String>, description: impl Into<String>) -> Self {
+    pub fn with_violation(
+        field: impl Into<String>,
+        reason: impl Into<String>,
+        description: impl Into<String>,
+        localized_message: Option<LocalizedMessage>,
+    ) -> Self {
         BadRequest {
             field_violations: vec![FieldViolation {
                 field: field.into(),
                 description: description.into(),
+                reason: reason.into(),
+                localized_message,
             }],
         }
     }
@@ -83,11 +110,15 @@ impl BadRequest {
     pub fn add_violation(
         &mut self,
         field: impl Into<String>,
+        reason: impl Into<String>,
         description: impl Into<String>,
+        localized_message: Option<LocalizedMessage>,
     ) -> &mut Self {
         self.field_violations.append(&mut vec![FieldViolation {
             field: field.into(),
             description: description.into(),
+            reason: reason.into(),
+            localized_message,
         }]);
         self
     }
@@ -165,8 +196,8 @@ mod tests {
         );
 
         br_details
-            .add_violation("field_a", "description_a")
-            .add_violation("field_b", "description_b");
+            .add_violation("field_a", "ERROR_CAT_A", "description_a", None)
+            .add_violation("field_b", "ERROR_CAT_B", "description_b", None);
 
         let formatted = format!("{:?}", br_details);
 
